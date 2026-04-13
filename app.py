@@ -14,4 +14,4 @@ app.add_middleware(
 
 @app.get("/api/test")
 async def test():
- return "Hello World!"
+ return {"message": "Hello World!"}
