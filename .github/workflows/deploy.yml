@@ -41,7 +41,7 @@ jobs:
             cd /home/ubuntu/demo-fastapi
 
             echo "Starting or updating FastAPI service..."
-            docker compose up --build -d fastapi
+            docker-compose up --build -d fastapi
 
             echo "Cleaning unused docker images..."
             docker image prune -f
