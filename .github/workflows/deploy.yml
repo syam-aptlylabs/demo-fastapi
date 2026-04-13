@@ -1,0 +1,58 @@
+name: Deploy FastAPI to EC2
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+
+      - name: Ensure project directory exists on EC2
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            mkdir -p /home/ubuntu/demo-fastapi
+
+      - name: Copy project to EC2
+        uses: appleboy/scp-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          source: "."
+          target: "/home/ubuntu/demo-fastapi"
+
+      - name: Deploy with Docker Compose
+        uses: appleboy/ssh-action@master
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ubuntu
+          key: ${{ secrets.EC2_KEY }}
+          script: |
+            cd /home/ubuntu/demo-fastapi
+
+            echo "Starting or updating FastAPI service..."
+            docker compose up --build -d fastapi
+
+            echo "Cleaning unused docker images..."
+            docker image prune -f
+
+            echo "Cleaning build cache..."
+            docker builder prune -f
+
+            echo "Cleaning stopped containers..."
+            docker container prune -f
+
+            echo "Cleaning unused networks..."
+            docker network prune -f
+
+            echo "Deployment complete."
